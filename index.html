@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BDC Primer — Structure, Exposures &amp; XBRL Data Coverage</title>
+<style>
+:root {
+  --navy: #1F3864;
+  --light-blue: #F2F6FC;
+  --dark-grey: #333;
+  --med-grey: #787878;
+  --white: #fff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: Calibri, 'Segoe UI', Helvetica, Arial, sans-serif; color: var(--dark-grey); line-height: 1.5; }
+
+/* Title page */
+.title-page {
+  min-height: 100vh; display: flex; flex-direction: column;
+  justify-content: center; align-items: center; text-align: center;
+  padding: 60px 40px; page-break-after: always;
+}
+.title-page h1 { font-size: 2.4em; color: var(--navy); margin-bottom: 12px; }
+.title-page .subtitle { font-size: 1.3em; color: var(--med-grey); margin-bottom: 40px; }
+.title-page hr { width: 200px; border: none; border-top: 2px solid var(--navy); margin: 0 auto 30px; }
+.title-page .source { font-size: 0.95em; color: var(--dark-grey); }
+.title-page .date { font-size: 0.9em; color: var(--med-grey); font-style: italic; margin-top: 12px; }
+
+/* Content pages */
+.page { max-width: 850px; margin: 0 auto; padding: 40px 50px; page-break-after: always; }
+.page:last-child { page-break-after: auto; }
+
+h2 { font-size: 1.5em; color: var(--navy); border-bottom: 3px solid var(--navy); padding-bottom: 4px; margin: 30px 0 14px; }
+.page:first-of-type h2:first-child { margin-top: 0; }
+h3 { font-size: 1.15em; color: var(--navy); margin: 18px 0 8px; }
+p { margin-bottom: 10px; font-size: 0.95em; }
+ul { margin: 6px 0 12px 30px; }
+ul li { margin-bottom: 5px; font-size: 0.95em; }
+
+/* Stat boxes */
+.stat-row { display: flex; gap: 8px; margin: 14px 0 18px; flex-wrap: wrap; }
+.stat-box {
+  background: var(--navy); color: var(--white); text-align: center;
+  padding: 10px 16px; border-radius: 4px; flex: 1; min-width: 120px;
+}
+.stat-box .value { font-size: 1.5em; font-weight: bold; }
+.stat-box .label { font-size: 0.7em; margin-top: 2px; }
+
+/* Tables */
+table { border-collapse: collapse; width: 100%; margin: 10px 0 14px; font-size: 0.88em; }
+th { background: var(--navy); color: var(--white); padding: 6px 10px; text-align: center; font-weight: 600; }
+td { padding: 5px 10px; border: 1px solid #ccc; }
+tr:nth-child(odd) td { background: var(--light-blue); }
+tr:nth-child(even) td { background: var(--white); }
+td:first-child { text-align: left; }
+td:not(:first-child) { text-align: right; }
+.bold-cell { font-weight: 600; }
+
+/* Table with 3 cols (What is NOT in XBRL) */
+.missing-table td:first-child { font-weight: 600; }
+
+/* Flow diagram */
+.flow-diagram { text-align: center; margin: 14px 0 20px; }
+.flow-box {
+  display: inline-block; background: var(--light-blue); border: 2px solid var(--navy);
+  color: var(--navy); padding: 8px 28px; font-size: 0.95em; border-radius: 4px;
+}
+.flow-arrow { color: var(--navy); font-size: 1.4em; margin: 4px 0; }
+.flow-label { color: var(--med-grey); font-style: italic; font-size: 0.78em; margin-bottom: 2px; }
+
+/* Footnotes */
+.footnote { font-size: 0.78em; color: var(--med-grey); font-style: italic; margin-top: 6px; }
+
+/* Data sources footer */
+.sources { border-top: 2px solid var(--navy); margin-top: 24px; padding-top: 10px; font-size: 0.85em; }
+
+@media print {
+  body { font-size: 10pt; }
+  .title-page { min-height: auto; padding: 120px 40px; }
+  .page { padding: 30px 20px; }
+  .stat-box { min-width: 100px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TITLE PAGE -->
+<div class="title-page">
+  <h1>Business Development<br>Companies (BDCs)</h1>
+  <div class="subtitle">Structure, Exposures &amp; XBRL Data Coverage</div>
+  <hr>
+  <div class="source">Based on SEC EDGAR XBRL BDC Data Sets (Q1 2025)</div>
+  <div class="source">and OTF (Blue Owl Technology Finance Corp.) 10-K deep dive</div>
+  <div class="date">July 2026</div>
+</div>
+
+<!-- PAGE 2: WHAT IS A BDC -->
+<div class="page">
+  <h2>What is a BDC?</h2>
+  <p>A Business Development Company (BDC) is a closed-end investment company registered under the Investment Company Act of 1940 that provides financing to small and mid-sized private companies. BDCs were created by Congress in 1980 to incentivise capital flow to businesses that lack access to public markets.</p>
+
+  <h3>Key Regulatory Requirements</h3>
+  <ul>
+    <li>Must invest at least 70% of assets in &ldquo;qualifying assets&rdquo; (private US companies with &lt;$250M market cap)</li>
+    <li>Maximum leverage: 2:1 debt-to-equity (increased from 1:1 by the Small Business Credit Availability Act 2018)</li>
+    <li>Must distribute at least 90% of taxable income to shareholders (RIC status, no corporate tax)</li>
+    <li>Must offer &ldquo;managerial assistance&rdquo; to portfolio companies</li>
+    <li>Publicly traded on stock exchanges with daily liquidity (unlike private credit funds)</li>
+  </ul>
+
+  <h3>External vs. Internal Management</h3>
+  <p>Most BDCs are externally managed: a parent asset manager (e.g. Blue Owl, Ares, Blackstone) runs the BDC through an investment advisory agreement. The manager earns a base management fee (typically 1.0&ndash;1.75% of assets) plus an incentive fee (typically 15&ndash;20% of income above a hurdle rate). A small number of BDCs (e.g. Main Street Capital) are internally managed, with no external adviser.</p>
+
+  <h3>Structure: Advisory Agreement Model</h3>
+  <div class="flow-diagram">
+    <div class="flow-box">Parent Asset Manager</div><br>
+    <div class="flow-arrow">&#x25BC;</div>
+    <div class="flow-label">Advisory Agreement</div>
+    <div class="flow-box">BDC (Public Vehicle)</div><br>
+    <div class="flow-arrow">&#x25BC;</div>
+    <div class="flow-label">Loans &amp; Equity</div>
+    <div class="flow-box">Portfolio Companies</div>
+  </div>
+</div>
+
+<!-- PAGE 3: THE BDC UNIVERSE -->
+<div class="page">
+  <h2>The BDC Universe</h2>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="value">165</div><div class="label">Registered BDCs</div></div>
+    <div class="stat-box"><div class="value">153</div><div class="label">With SOI Data</div></div>
+    <div class="stat-box"><div class="value">114,738</div><div class="label">Total Holdings</div></div>
+    <div class="stat-box"><div class="value">144 10-K</div><div class="label">Filing Types</div></div>
+  </div>
+
+  <p>The SEC publishes structured XBRL data for all registered BDCs through its BDC Data Sets, available as quarterly and monthly zip files. The Q1 2025 data set contains 166 filings from 165 unique entities, predominantly annual 10-K filings (144) with 20 quarterly 10-Q filings. Of these, 153 BDCs report Schedule of Investments (SOI) holdings data in structured format, totalling 114,738 individual holding rows.</p>
+
+  <h3>Top 7 BDCs by AUM: Advisory Agreement Pairs</h3>
+  <table>
+    <tr><th>Parent Manager</th><th>Ticker</th><th>BDC Name</th><th>FV ($B)</th><th>Holdings</th><th>Companies</th></tr>
+    <tr><td>Ares Management</td><td>ARCC</td><td>Ares Capital Corp.</td><td>27.1</td><td>1,337</td><td>536</td></tr>
+    <tr><td>Blue Owl Capital</td><td>OTF</td><td>Blue Owl Technology Finance</td><td>15.6</td><td>496</td><td>322</td></tr>
+    <tr><td>KKR</td><td>FSK</td><td>FS KKR Capital Corp.</td><td>14.8</td><td>654</td><td>249</td></tr>
+    <tr><td>Blue Owl Capital</td><td>OBDC</td><td>Blue Owl Capital Corp.</td><td>13.2</td><td>599</td><td>284</td></tr>
+    <tr><td>Blackstone</td><td>BXSL</td><td>Blackstone Secured Lending</td><td>12.5</td><td>560</td><td>400</td></tr>
+    <tr><td>Golub Capital</td><td>GBDC</td><td>Golub Capital BDC</td><td>8.1</td><td>1,639</td><td>397</td></tr>
+    <tr><td>Sixth Street</td><td>TSLX</td><td>Sixth Street Specialty Lending</td><td>3.5</td><td>221</td><td>176</td></tr>
+  </table>
+  <div class="footnote">FV from latest public filings. Holdings/companies from XBRL SOI data (Q1 2025 data set, FY2024 period).</div>
+
+  <h3>XBRL Data: What It Gives You and What It Does Not</h3>
+  <p>The XBRL data gives you the quantitative skeleton &mdash; what they own, how much it cost, and what it is worth &mdash; but the qualitative context (why, how, what is the risk) lives only in the prose of the 10-K.</p>
+  <p>Core fields like fair value (91% populated), cost basis (80%), principal (58%), and spread (48%) are reliably available across the universe. However, the XBRL data does not provide a geographic breakdown at the holding level (only portfolio-level concentration percentages), nor does it include borrower business descriptions. Sector labels are attached only to subtotal rows, not individual holdings. Critical risk flags &mdash; non-accrual status, reference rate type, fixed vs. floating structure, co-investment with affiliates &mdash; are encoded in 10-K footnotes and must be extracted by parsing the HTML filing.</p>
+</div>
+
+<!-- PAGE 4: OTF CASE STUDY -->
+<div class="page">
+  <h2>Case Study: OTF Portfolio Profile</h2>
+  <p>Blue Owl Technology Finance Corp. (OTF) is a technology-focused BDC managed by Blue Owl Capital. Its FY2025 10-K (filed 18 Feb 2026) provides a detailed case study of BDC portfolio composition and the data available through XBRL vs. the full filing.</p>
+
+  <div class="stat-row">
+    <div class="stat-box"><div class="value">496</div><div class="label">Holdings</div></div>
+    <div class="stat-box"><div class="value">322</div><div class="label">Companies</div></div>
+    <div class="stat-box"><div class="value">$15.6B</div><div class="label">Total FV</div></div>
+    <div class="stat-box"><div class="value">$1.4B</div><div class="label">Unrealised G/L</div></div>
+  </div>
+
+  <h3>Sector Breakdown (Top 10 by Fair Value)</h3>
+  <table>
+    <tr><th>Sector</th><th>% of Portfolio</th></tr>
+    <tr><td>Application Software</td><td>21.3%</td></tr>
+    <tr><td>Systems Software</td><td>10.8%</td></tr>
+    <tr><td>Insurance</td><td>7.6%</td></tr>
+    <tr><td>Diversified Financial Services</td><td>6.4%</td></tr>
+    <tr><td>IT Services</td><td>6.2%</td></tr>
+    <tr><td>Health Care Technology</td><td>5.9%</td></tr>
+    <tr><td>Professional Services</td><td>4.5%</td></tr>
+    <tr><td>Interactive Media &amp; Services</td><td>3.7%</td></tr>
+    <tr><td>Health Care Providers &amp; Services</td><td>3.2%</td></tr>
+    <tr><td>Data Processing &amp; Outsourced Services</td><td>2.9%</td></tr>
+  </table>
+
+  <h3>Geographic Concentration (% of Fair Value)</h3>
+  <table>
+    <tr><th>Region</th><th>FY2025</th><th>FY2024</th><th>Change</th></tr>
+    <tr><td class="bold-cell">United States (total)</td><td>90.1%</td><td>85.3%</td><td>+4.8pp</td></tr>
+    <tr><td>&emsp;West</td><td>27.8%</td><td>28.7%</td><td>-0.9pp</td></tr>
+    <tr><td>&emsp;South</td><td>24.2%</td><td>19.8%</td><td>+4.4pp</td></tr>
+    <tr><td>&emsp;Northeast</td><td>21.8%</td><td>15.9%</td><td>+5.9pp</td></tr>
+    <tr><td>&emsp;Midwest</td><td>16.3%</td><td>20.9%</td><td>-4.6pp</td></tr>
+    <tr><td class="bold-cell">International (total)</td><td>9.9%</td><td>14.7%</td><td>-4.8pp</td></tr>
+    <tr><td>&emsp;United Kingdom</td><td>5.5%</td><td>5.2%</td><td>+0.3pp</td></tr>
+    <tr><td>&emsp;Canada</td><td>2.3%</td><td>3.0%</td><td>-0.7pp</td></tr>
+    <tr><td>&emsp;Other (8 countries)</td><td>2.1%</td><td>6.5%</td><td>-4.4pp</td></tr>
+  </table>
+  <div class="footnote">Note: geography is portfolio-level only (from XBRL concentration risk data). Not available per holding.</div>
+</div>
+
+<!-- PAGE 5: WHAT IS NOT IN XBRL -->
+<div class="page">
+  <h2>What is NOT in XBRL</h2>
+  <p>The following information is available in the body of the 10-K filing but is absent or unusable in the XBRL structured data. Extracting these fields requires parsing the HTML (inline XBRL) filing directly.</p>
+
+  <table class="missing-table">
+    <tr><th>Data Point</th><th style="text-align:left">Where in the 10-K</th><th style="text-align:left">Why Not in XBRL</th></tr>
+    <tr><td>Sector per holding</td><td style="text-align:left">SOI table: holdings grouped under sector headings</td><td style="text-align:left">XBRL tags sectors on subtotal rows only, not individual holdings</td></tr>
+    <tr><td>Reference rate type (1M SOFR, Prime, etc.)</td><td style="text-align:left">SOI footnotes (e.g. fn 9 = 1M SOFR)</td><td style="text-align:left">No per-holding XBRL tag for rate benchmark type</td></tr>
+    <tr><td>Non-accrual status</td><td style="text-align:left">SOI footnotes (e.g. fn 24)</td><td style="text-align:left">XBRL field exists but populated on only 12 of 114,738 rows</td></tr>
+    <tr><td>Fixed vs. floating rate</td><td style="text-align:left">SOI footnotes (e.g. fn 6 = fixed)</td><td style="text-align:left">XBRL reports total coupon only, does not distinguish structure</td></tr>
+    <tr><td>Co-investment flag</td><td style="text-align:left">SOI footnotes (e.g. fn 3)</td><td style="text-align:left">Not tagged in XBRL at holding level</td></tr>
+    <tr><td>Unfunded commitments</td><td style="text-align:left">SOI footnotes + Note 8 detail</td><td style="text-align:left">Not tagged in XBRL at holding level</td></tr>
+    <tr><td>Non-qualifying assets (Section 55)</td><td style="text-align:left">SOI footnotes (e.g. fn 31)</td><td style="text-align:left">Not tagged in XBRL at holding level</td></tr>
+    <tr><td>Borrower description (&ldquo;a provider of&hellip;&rdquo;)</td><td style="text-align:left">SOI table (varies by BDC; ARCC includes, OTF does not)</td><td style="text-align:left">Never in XBRL. No standardised tag exists</td></tr>
+    <tr><td>Per-holding geography (country/region)</td><td style="text-align:left">Not disclosed per holding. Portfolio-level % only</td><td style="text-align:left">XBRL Geographical Axis (1%) refers to concentration risk only</td></tr>
+    <tr><td>Fair value level (Level 1/2/3)</td><td style="text-align:left">SOI footnotes (e.g. fn 4 = Level 3)</td><td style="text-align:left">XBRL field exists but populated on only 3% of rows</td></tr>
+    <tr><td>Maturity date</td><td style="text-align:left">SOI table column (MM/YYYY format)</td><td style="text-align:left">XBRL field exists but populated on only 20% of rows</td></tr>
+    <tr><td>Controlled companies (&gt;25% voting)</td><td style="text-align:left">SOI footnotes (e.g. fn 30)</td><td style="text-align:left">Not tagged in XBRL at holding level</td></tr>
+  </table>
+  <div class="footnote">Population rates are across all 114,738 SOI rows in the Q1 2025 data set. The soi.tsv file contains 190+ columns but most are sparsely populated.</div>
+</div>
+
+<!-- PAGE 6: PRACTICAL IMPLICATIONS -->
+<div class="page">
+  <h2>Practical Implications for Investors</h2>
+  <p>The XBRL BDC data sets provide approximately 60&ndash;70% of the holding-level information contained in a 10-K Schedule of Investments. The gap matters most for credit quality assessment and concentration risk analysis.</p>
+
+  <h3>XBRL is best for:</h3>
+  <ul>
+    <li>Screening across 150+ BDCs simultaneously (portfolio size, spread, maturity profiles)</li>
+    <li>Peer comparison at scale (cost basis vs. FV, leverage, sector allocation)</li>
+    <li>Portfolio construction signals (largest holdings overlap, sector concentration)</li>
+    <li>Quantitative analysis (spread distributions, principal amounts, interest rate exposure)</li>
+  </ul>
+
+  <h3>HTML filing parsing is essential for:</h3>
+  <ul>
+    <li>Credit quality assessment (non-accrual identification, recovery analysis)</li>
+    <li>Interest rate sensitivity (reference rate type, fixed vs. floating breakdown)</li>
+    <li>Regulatory compliance analysis (qualifying asset %, Section 55 flags)</li>
+    <li>Affiliated transaction monitoring (co-investment flags, controlled companies)</li>
+    <li>Deep-dive single-name analysis (footnote context, unfunded commitments)</li>
+  </ul>
+
+  <h3>Recommended Workflow</h3>
+  <p>1. Start with XBRL data sets for broad screening and peer comparison across the full BDC universe. The soi.tsv file gives you fair value, cost, spread, and principal for 75&ndash;91% of holdings across all 153 reporting BDCs.</p>
+  <p>2. For target BDCs, download the inline XBRL filing (10-K or 10-Q) from EDGAR and parse the HTML to extract: sector mapping (from document structure), footnote flags (from ix:footnote and ix:relationship elements), and reference rate types.</p>
+  <p>3. Key gap to watch: maturity date is populated in XBRL for only 20% of holdings globally, but is almost always present in the rendered HTML table. Sector is populated for only 10% of XBRL rows. These two fields alone often justify the HTML parsing step.</p>
+
+  <div class="sources">Data sources: SEC EDGAR XBRL BDC Data Sets (Q1 2025 quarterly, February 2026 monthly). OTF 10-K for fiscal year ended 31 December 2025, filed 18 February 2026 (CIK 0001747777, accession 0001747777-26-000012). Analysis performed July 2026.</div>
+</div>
+
+</body>
+</html>
