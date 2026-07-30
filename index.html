@@ -145,7 +145,7 @@ td:not(:first-child) { text-align: right; }
   <h2>The BDC Universe</h2>
 
   <h3>Top 50 BDCs by Parent Company</h3>
-  <p style="font-size:0.85em; color:#787878; margin-bottom:6px;">Rectangle size = combined fair value ($B) across BDC vehicles. Colour = number of BDC vehicles managed. Hover for details.</p>
+  <p style="font-size:0.85em; color:#787878; margin-bottom:6px;">Rectangle size = combined fair value ($B) across BDC vehicles. Colour = number of BDC vehicles managed. Click to highlight linked BDCs below.</p>
   <div class="treemap-legend">
     <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#6baed6"></div> 1 BDC</div>
     <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#2171b5"></div> 2 BDCs</div>
@@ -213,41 +213,47 @@ td:not(:first-child) { text-align: right; }
 
 <div class="treemap-tooltip" id="treemap-tooltip"></div>
 <script>
+// Shared state for cross-treemap highlighting
+let selectedParent = null;
+let bdcCells = null;
+let bdcColourScale = null;
+let bdcMaxC = 0;
+
 // Parent company treemap
-(function() {
+{
   const data = [
-    {s:"Blackstone (BX)",fv:81.5,c:3216,h:4661,n:2},
-    {s:"Blue Owl Capital (OWL)",fv:58.6,c:2960,h:5387,n:6},
-    {s:"Ares Management (ARES)",fv:38.2,c:2663,h:4823,n:2},
-    {s:"Apollo Global (APO)",fv:17.6,c:3147,h:4190,n:2},
-    {s:"HPS Investment Partners",fv:16.1,c:1048,h:1835,n:1},
-    {s:"KKR (KKR)",fv:14.6,c:852,h:1790,n:1},
-    {s:"Goldman Sachs (GS)",fv:13.3,c:2239,h:2724,n:3},
-    {s:"Golub Capital (Private)",fv:12.8,c:2623,h:4928,n:2},
-    {s:"Sixth Street (SSSS)",fv:10.7,c:607,h:728,n:2},
-    {s:"Morgan Stanley (MS)",fv:9.9,c:2079,h:3132,n:2},
-    {s:"Oaktree / Brookfield",fv:8.0,c:881,h:2220,n:2},
-    {s:"Barings / MassMutual",fv:5.6,c:2400,h:4345,n:2},
-    {s:"New Mountain Capital",fv:5.1,c:1157,h:2230,n:2},
-    {s:"Main Street Capital (MAIN)",fv:4.9,c:789,h:2080,n:1},
-    {s:"MSD Partners (Private)",fv:4.5,c:287,h:362,n:1},
-    {s:"Monroe Capital (Private)",fv:4.0,c:1119,h:1793,n:1},
-    {s:"Franklin Templeton (BEN)",fv:4.0,c:742,h:1182,n:1},
-    {s:"Nuveen / TIAA",fv:3.8,c:1559,h:1904,n:2},
-    {s:"Carlyle Group (CG)",fv:3.8,c:797,h:1480,n:2},
-    {s:"Hercules Capital (HTGC)",fv:3.7,c:619,h:959,n:1},
-    {s:"TPG (TPG)",fv:3.2,c:760,h:1318,n:1},
-    {s:"Stone Point Capital",fv:2.5,c:354,h:521,n:1},
-    {s:"Bain Capital (Private)",fv:2.4,c:1143,h:1842,n:1},
-    {s:"PennantPark (PFLT)",fv:2.2,c:1247,h:1269,n:1},
-    {s:"Antares Capital",fv:2.1,c:1014,h:1023,n:1},
-    {s:"T. Rowe Price (TROW)",fv:2.1,c:384,h:663,n:1},
-    {s:"CION Investments",fv:2.0,c:507,h:852,n:1},
-    {s:"BlackRock (BLK)",fv:1.8,c:639,h:853,n:1},
-    {s:"FS Investments / KKR",fv:1.8,c:196,h:396,n:1},
-    {s:"Capital Southwest (CSWC)",fv:1.7,c:464,h:1277,n:1},
-    {s:"Trinity Capital (TRIN)",fv:1.7,c:881,h:1299,n:1},
-    {s:"Crescent Capital",fv:1.6,c:1166,h:1455,n:1}
+    {s:"Blackstone (BX)",pk:["Blackstone"],fv:81.5,c:3216,h:4661,n:2},
+    {s:"Blue Owl Capital (OWL)",pk:["Blue Owl"],fv:58.6,c:2960,h:5387,n:6},
+    {s:"Ares Management (ARES)",pk:["Ares"],fv:38.2,c:2663,h:4823,n:2},
+    {s:"Apollo Global (APO)",pk:["Apollo"],fv:17.6,c:3147,h:4190,n:2},
+    {s:"HPS Investment Partners",pk:["HPS"],fv:16.1,c:1048,h:1835,n:1},
+    {s:"KKR (KKR)",pk:["KKR"],fv:14.6,c:852,h:1790,n:1},
+    {s:"Goldman Sachs (GS)",pk:["Goldman Sachs"],fv:13.3,c:2239,h:2724,n:3},
+    {s:"Golub Capital (Private)",pk:["Golub"],fv:12.8,c:2623,h:4928,n:2},
+    {s:"Sixth Street (SSSS)",pk:["Sixth Street"],fv:10.7,c:607,h:728,n:2},
+    {s:"Morgan Stanley (MS)",pk:["Morgan Stanley"],fv:9.9,c:2079,h:3132,n:2},
+    {s:"Oaktree / Brookfield",pk:["Oaktree"],fv:8.0,c:881,h:2220,n:2},
+    {s:"Barings / MassMutual",pk:["Barings"],fv:5.6,c:2400,h:4345,n:2},
+    {s:"New Mountain Capital",pk:["New Mountain"],fv:5.1,c:1157,h:2230,n:2},
+    {s:"Main Street Capital (MAIN)",pk:["Main Street"],fv:4.9,c:789,h:2080,n:1},
+    {s:"MSD Partners (Private)",pk:["MSD"],fv:4.5,c:287,h:362,n:1},
+    {s:"Monroe Capital (Private)",pk:["Monroe"],fv:4.0,c:1119,h:1793,n:1},
+    {s:"Franklin Templeton (BEN)",pk:["Franklin"],fv:4.0,c:742,h:1182,n:1},
+    {s:"Nuveen / TIAA",pk:["Nuveen"],fv:3.8,c:1559,h:1904,n:2},
+    {s:"Carlyle Group (CG)",pk:["Carlyle"],fv:3.8,c:797,h:1480,n:2},
+    {s:"Hercules Capital (HTGC)",pk:["Hercules"],fv:3.7,c:619,h:959,n:1},
+    {s:"TPG (TPG)",pk:["TPG"],fv:3.2,c:760,h:1318,n:1},
+    {s:"Stone Point Capital",pk:["Stone Point"],fv:2.5,c:354,h:521,n:1},
+    {s:"Bain Capital (Private)",pk:["Bain"],fv:2.4,c:1143,h:1842,n:1},
+    {s:"PennantPark (PFLT)",pk:["PennantPark"],fv:2.2,c:1247,h:1269,n:1},
+    {s:"Antares Capital",pk:["Antares"],fv:2.1,c:1014,h:1023,n:1},
+    {s:"T. Rowe Price (TROW)",pk:["T. Rowe Price"],fv:2.1,c:384,h:663,n:1},
+    {s:"CION Investments",pk:["CION"],fv:2.0,c:507,h:852,n:1},
+    {s:"BlackRock (BLK)",pk:["BlackRock"],fv:1.8,c:639,h:853,n:1},
+    {s:"FS Investments / KKR",pk:["FS/KKR"],fv:1.8,c:196,h:396,n:1},
+    {s:"Capital Southwest (CSWC)",pk:["Capital Southwest"],fv:1.7,c:464,h:1277,n:1},
+    {s:"Trinity Capital (TRIN)",pk:["Trinity"],fv:1.7,c:881,h:1299,n:1},
+    {s:"Crescent Capital",pk:["Crescent"],fv:1.6,c:1166,h:1455,n:1}
   ];
 
   const colourByCount = n => n >= 3 ? '#084594' : n === 2 ? '#2171b5' : '#6baed6';
@@ -284,8 +290,44 @@ td:not(:first-child) { text-align: right; }
       tooltip.style.top = (e.pageY - 10) + 'px';
     })
     .on('mouseout', function() {
-      d3.select(this).attr('stroke', '#fff').attr('stroke-width', 1.5);
+      if (!selectedParent || !d3.select(this.parentNode).datum().data.pk.some(k => selectedParent.includes(k)))
+        d3.select(this).attr('stroke', '#fff').attr('stroke-width', 1.5);
       tooltip.style.opacity = 0;
+    })
+    .on('click', function(e, d) {
+      const keys = d.data.pk;
+      const wasSelected = selectedParent && keys.every(k => selectedParent.includes(k));
+      // Reset parent treemap highlights
+      cells.selectAll('rect').attr('stroke', '#fff').attr('stroke-width', 1.5);
+      if (wasSelected) {
+        selectedParent = null;
+        // Reset BDC treemap
+        if (bdcCells) {
+          bdcCells.selectAll('rect')
+            .attr('fill', dd => bdcColourScale(dd.data.c))
+            .attr('stroke', '#fff').attr('stroke-width', 1.5);
+          bdcCells.selectAll('text').attr('opacity', function() {
+            return d3.select(this).attr('data-base-opacity') || 1;
+          });
+        }
+      } else {
+        selectedParent = keys;
+        d3.select(this).attr('stroke', '#FFD700').attr('stroke-width', 3);
+        // Highlight matching BDCs
+        if (bdcCells) {
+          bdcCells.each(function(dd) {
+            const match = keys.includes(dd.data.p);
+            d3.select(this).select('rect')
+              .attr('fill', match ? '#FFD700' : bdcColourScale(dd.data.c))
+              .attr('stroke', match ? '#1F3864' : '#fff')
+              .attr('stroke-width', match ? 2.5 : 1.5)
+              .style('opacity', match ? 1 : 0.3);
+            d3.select(this).selectAll('text')
+              .style('opacity', match ? 1 : 0.2);
+          });
+          document.getElementById('treemap').scrollIntoView({behavior:'smooth', block:'center'});
+        }
+      }
     });
 
   cells.each(function(d) {
@@ -312,66 +354,66 @@ td:not(:first-child) { text-align: right; }
         .attr('font-family', 'Calibri, sans-serif').attr('opacity', 0.7);
     }
   });
-})();
+}
 
 // Individual BDC treemap
-(function() {
+{
   const data = [
-    {s:"Blackstone Private Credit",t:"BCRED",fv:68.4,c:2507,h:3584},
-    {s:"Ares Capital",t:"ARCC",fv:26.7,c:1726,h:3302},
-    {s:"Blue Owl Credit Income",t:"OBDI",fv:26.4,c:698,h:1179},
-    {s:"HPS Corporate Lending",t:"HPSC",fv:16.1,c:1048,h:1835},
-    {s:"Apollo Debt Solutions",t:"ADS",fv:14.6,c:1317,h:1872},
-    {s:"FS KKR Capital",t:"FSK",fv:14.6,c:852,h:1790},
-    {s:"Blue Owl Capital",t:"OBDC",fv:13.2,c:748,h:1357},
-    {s:"Blackstone Secured Lending",t:"BXSL",fv:13.1,c:709,h:1077},
-    {s:"Ares Strategic Income",t:"ASIF",fv:11.5,c:937,h:1521},
-    {s:"Golub Capital BDC",t:"GBDC",fv:8.7,c:1957,h:3615},
-    {s:"Goldman Sachs Private Credit",t:"GSPC",fv:7.3,c:719,h:868},
-    {s:"Sixth Street Lending Partners",t:"SSLP",fv:7.2,c:190,h:218},
-    {s:"Blue Owl Technology Finance",t:"OTF",fv:6.4,c:311,h:645},
-    {s:"North Haven Private Income",t:"NHPIF",fv:6.1,c:922,h:1545},
-    {s:"Blue Owl Tech Finance II",t:"OTF2",fv:5.4,c:379,h:709},
-    {s:"Blue Owl Technology Income",t:"OTIC",fv:5.2,c:452,h:743},
-    {s:"Oaktree Strategic Credit",t:"OSCF",fv:5.0,c:388,h:892},
-    {s:"Main Street Capital",t:"MAIN",fv:4.9,c:789,h:2080},
-    {s:"MSD Investment",t:"MSDI",fv:4.5,c:287,h:362},
-    {s:"Golub Capital Private Credit",t:"GPCF",fv:4.1,c:666,h:1313},
-    {s:"Monroe Capital Income Plus",t:"MRCC",fv:4.0,c:1119,h:1793},
-    {s:"Franklin BSP Capital",t:"FBRT",fv:4.0,c:742,h:1182},
-    {s:"Morgan Stanley Direct Lending",t:"MSDL",fv:3.8,c:1157,h:1587},
-    {s:"Hercules Capital",t:"HTGC",fv:3.7,c:619,h:959},
-    {s:"Sixth Street Specialty Lending",t:"TSLX",fv:3.5,c:417,h:510},
-    {s:"Goldman Sachs BDC",t:"GSBD",fv:3.5,c:968,h:1168},
-    {s:"TPG Twin Brook Capital Income",t:"TPVG",fv:3.2,c:760,h:1318},
-    {s:"New Mountain Finance",t:"NMFC",fv:3.1,c:833,h:1541},
-    {s:"Barings Private Credit",t:"BPCC",fv:3.1,c:1147,h:1902},
-    {s:"MidCap Financial Investment",t:"MFIC",fv:3.0,c:1830,h:2318},
-    {s:"Oaktree Specialty Lending",t:"OCSL",fv:3.0,c:493,h:1328},
-    {s:"GS Private MM Credit II",t:"GSPM",fv:2.5,c:552,h:688},
-    {s:"Barings BDC",t:"BBDC",fv:2.5,c:1253,h:2443},
-    {s:"Stone Point Credit",t:"SPCC",fv:2.5,c:354,h:521},
-    {s:"Bain Capital Specialty Finance",t:"BCSF",fv:2.4,c:1143,h:1842},
-    {s:"PennantPark Floating Rate",t:"PFLT",fv:2.2,c:1247,h:1269},
-    {s:"Antares Strategic Credit",t:"ANTX",fv:2.1,c:1014,h:1023},
-    {s:"Nuveen Churchill Direct Lending",t:"NCDL",fv:2.1,c:852,h:1014},
-    {s:"T. Rowe Price OHA Select",t:"OHPC",fv:2.1,c:384,h:663},
-    {s:"CION Investment",t:"CION",fv:2.0,c:507,h:852},
-    {s:"Blue Owl Capital II",t:"OBDE",fv:2.0,c:372,h:754},
-    {s:"Carlyle Credit Solutions",t:"CCSI",fv:2.0,c:332,h:595},
-    {s:"New Mountain Private Credit",t:"NMPC",fv:2.0,c:324,h:689},
-    {s:"BlackRock TCP Capital",t:"TCPC",fv:1.8,c:639,h:853},
-    {s:"Carlyle Secured Lending",t:"CGBD",fv:1.8,c:465,h:885},
-    {s:"FS Specialty Lending",t:"FSSL",fv:1.8,c:196,h:396},
-    {s:"Capital Southwest",t:"CSWC",fv:1.7,c:464,h:1277},
-    {s:"Trinity Capital",t:"TRIN",fv:1.7,c:881,h:1299},
-    {s:"Nuveen Churchill Private Capital",t:"NCIF",fv:1.7,c:707,h:890},
-    {s:"Crescent Capital BDC",t:"CCAP",fv:1.6,c:1166,h:1455}
+    {s:"Blackstone Private Credit",t:"BCRED",p:"Blackstone",fv:68.4,c:2507,h:3584},
+    {s:"Ares Capital",t:"ARCC",p:"Ares",fv:26.7,c:1726,h:3302},
+    {s:"Blue Owl Credit Income",t:"OBDI",p:"Blue Owl",fv:26.4,c:698,h:1179},
+    {s:"HPS Corporate Lending",t:"HPSC",p:"HPS",fv:16.1,c:1048,h:1835},
+    {s:"Apollo Debt Solutions",t:"ADS",p:"Apollo",fv:14.6,c:1317,h:1872},
+    {s:"FS KKR Capital",t:"FSK",p:"KKR",fv:14.6,c:852,h:1790},
+    {s:"Blue Owl Capital",t:"OBDC",p:"Blue Owl",fv:13.2,c:748,h:1357},
+    {s:"Blackstone Secured Lending",t:"BXSL",p:"Blackstone",fv:13.1,c:709,h:1077},
+    {s:"Ares Strategic Income",t:"ASIF",p:"Ares",fv:11.5,c:937,h:1521},
+    {s:"Golub Capital BDC",t:"GBDC",p:"Golub",fv:8.7,c:1957,h:3615},
+    {s:"Goldman Sachs Private Credit",t:"GSPC",p:"Goldman Sachs",fv:7.3,c:719,h:868},
+    {s:"Sixth Street Lending Partners",t:"SSLP",p:"Sixth Street",fv:7.2,c:190,h:218},
+    {s:"Blue Owl Technology Finance",t:"OTF",p:"Blue Owl",fv:6.4,c:311,h:645},
+    {s:"North Haven Private Income",t:"NHPIF",p:"Morgan Stanley",fv:6.1,c:922,h:1545},
+    {s:"Blue Owl Tech Finance II",t:"OTF2",p:"Blue Owl",fv:5.4,c:379,h:709},
+    {s:"Blue Owl Technology Income",t:"OTIC",p:"Blue Owl",fv:5.2,c:452,h:743},
+    {s:"Oaktree Strategic Credit",t:"OSCF",p:"Oaktree",fv:5.0,c:388,h:892},
+    {s:"Main Street Capital",t:"MAIN",p:"Main Street",fv:4.9,c:789,h:2080},
+    {s:"MSD Investment",t:"MSDI",p:"MSD",fv:4.5,c:287,h:362},
+    {s:"Golub Capital Private Credit",t:"GPCF",p:"Golub",fv:4.1,c:666,h:1313},
+    {s:"Monroe Capital Income Plus",t:"MRCC",p:"Monroe",fv:4.0,c:1119,h:1793},
+    {s:"Franklin BSP Capital",t:"FBRT",p:"Franklin",fv:4.0,c:742,h:1182},
+    {s:"Morgan Stanley Direct Lending",t:"MSDL",p:"Morgan Stanley",fv:3.8,c:1157,h:1587},
+    {s:"Hercules Capital",t:"HTGC",p:"Hercules",fv:3.7,c:619,h:959},
+    {s:"Sixth Street Specialty Lending",t:"TSLX",p:"Sixth Street",fv:3.5,c:417,h:510},
+    {s:"Goldman Sachs BDC",t:"GSBD",p:"Goldman Sachs",fv:3.5,c:968,h:1168},
+    {s:"TPG Twin Brook Capital Income",t:"TPVG",p:"TPG",fv:3.2,c:760,h:1318},
+    {s:"New Mountain Finance",t:"NMFC",p:"New Mountain",fv:3.1,c:833,h:1541},
+    {s:"Barings Private Credit",t:"BPCC",p:"Barings",fv:3.1,c:1147,h:1902},
+    {s:"MidCap Financial Investment",t:"MFIC",p:"Apollo",fv:3.0,c:1830,h:2318},
+    {s:"Oaktree Specialty Lending",t:"OCSL",p:"Oaktree",fv:3.0,c:493,h:1328},
+    {s:"GS Private MM Credit II",t:"GSPM",p:"Goldman Sachs",fv:2.5,c:552,h:688},
+    {s:"Barings BDC",t:"BBDC",p:"Barings",fv:2.5,c:1253,h:2443},
+    {s:"Stone Point Credit",t:"SPCC",p:"Stone Point",fv:2.5,c:354,h:521},
+    {s:"Bain Capital Specialty Finance",t:"BCSF",p:"Bain",fv:2.4,c:1143,h:1842},
+    {s:"PennantPark Floating Rate",t:"PFLT",p:"PennantPark",fv:2.2,c:1247,h:1269},
+    {s:"Antares Strategic Credit",t:"ANTX",p:"Antares",fv:2.1,c:1014,h:1023},
+    {s:"Nuveen Churchill Direct Lending",t:"NCDL",p:"Nuveen",fv:2.1,c:852,h:1014},
+    {s:"T. Rowe Price OHA Select",t:"OHPC",p:"T. Rowe Price",fv:2.1,c:384,h:663},
+    {s:"CION Investment",t:"CION",p:"CION",fv:2.0,c:507,h:852},
+    {s:"Blue Owl Capital II",t:"OBDE",p:"Blue Owl",fv:2.0,c:372,h:754},
+    {s:"Carlyle Credit Solutions",t:"CCSI",p:"Carlyle",fv:2.0,c:332,h:595},
+    {s:"New Mountain Private Credit",t:"NMPC",p:"New Mountain",fv:2.0,c:324,h:689},
+    {s:"BlackRock TCP Capital",t:"TCPC",p:"BlackRock",fv:1.8,c:639,h:853},
+    {s:"Carlyle Secured Lending",t:"CGBD",p:"Carlyle",fv:1.8,c:465,h:885},
+    {s:"FS Specialty Lending",t:"FSSL",p:"FS/KKR",fv:1.8,c:196,h:396},
+    {s:"Capital Southwest",t:"CSWC",p:"Capital Southwest",fv:1.7,c:464,h:1277},
+    {s:"Trinity Capital",t:"TRIN",p:"Trinity",fv:1.7,c:881,h:1299},
+    {s:"Nuveen Churchill Private Capital",t:"NCIF",p:"Nuveen",fv:1.7,c:707,h:890},
+    {s:"Crescent Capital BDC",t:"CCAP",p:"Crescent",fv:1.6,c:1166,h:1455}
   ];
 
-  const maxC = Math.max(...data.map(d => d.c));
+  bdcMaxC = Math.max(...data.map(d => d.c));
   const minC = Math.min(...data.map(d => d.c));
-  const colourScale = d3.scaleSequential().domain([minC, maxC]).interpolator(d3.interpolateBlues);
+  bdcColourScale = d3.scaleSequential().domain([minC, bdcMaxC]).interpolator(d3.interpolateBlues);
 
   const container = document.getElementById('treemap');
   const width = Math.min(800, container.clientWidth || 800);
@@ -383,18 +425,19 @@ td:not(:first-child) { text-align: right; }
 
   const tooltip = document.getElementById('treemap-tooltip');
 
-  const cells = svg.selectAll('g').data(hierarchy.leaves()).join('g')
+  bdcCells = svg.selectAll('g').data(hierarchy.leaves()).join('g')
     .attr('transform', d => `translate(${d.x0},${d.y0})`);
 
-  cells.append('rect')
+  bdcCells.append('rect')
     .attr('width', d => d.x1 - d.x0).attr('height', d => d.y1 - d.y0)
-    .attr('fill', d => colourScale(d.data.c))
+    .attr('fill', d => bdcColourScale(d.data.c))
     .attr('stroke', '#fff').attr('stroke-width', 1.5).attr('rx', 2)
     .style('cursor', 'pointer')
     .on('mouseover', function(e, d) {
       d3.select(this).attr('stroke', '#FFD700').attr('stroke-width', 2.5);
       tooltip.innerHTML =
         '<div class="tt-name">' + d.data.s + ' (' + d.data.t + ')</div>' +
+        '<div class="tt-row"><span class="tt-label">Parent</span><span>' + d.data.p + '</span></div>' +
         '<div class="tt-row"><span class="tt-label">Fair Value</span><span>$' + d.data.fv + 'B</span></div>' +
         '<div class="tt-row"><span class="tt-label">Companies</span><span>' + d.data.c.toLocaleString() + '</span></div>' +
         '<div class="tt-row"><span class="tt-label">Holdings</span><span>' + d.data.h.toLocaleString() + '</span></div>';
@@ -405,14 +448,14 @@ td:not(:first-child) { text-align: right; }
       tooltip.style.top = (e.pageY - 10) + 'px';
     })
     .on('mouseout', function() {
-      d3.select(this).attr('stroke', '#fff').attr('stroke-width', 1.5);
+      if (!selectedParent) d3.select(this).attr('stroke', '#fff').attr('stroke-width', 1.5);
       tooltip.style.opacity = 0;
     });
 
-  cells.each(function(d) {
+  bdcCells.each(function(d) {
     const w = d.x1 - d.x0, h = d.y1 - d.y0;
     const g = d3.select(this);
-    const textColour = d.data.c > (maxC * 0.45) ? '#fff' : '#1F3864';
+    const textColour = d.data.c > (bdcMaxC * 0.45) ? '#fff' : '#1F3864';
     if (w < 36 || h < 22) return;
     const fontSize = w > 120 && h > 50 ? 11.5 : w > 80 && h > 36 ? 10 : 8.5;
     let label = d.data.s;
@@ -435,7 +478,7 @@ td:not(:first-child) { text-align: right; }
         .attr('font-family', 'Calibri, sans-serif').attr('opacity', 0.7);
     }
   });
-})();
+}
 </script>
 </body>
 </html>
