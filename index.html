@@ -26,7 +26,7 @@ body { font-family: Calibri, 'Segoe UI', Helvetica, Arial, sans-serif; color: va
 .title-page .subtitle { font-size: 1.3em; color: var(--med-grey); margin-bottom: 40px; }
 .title-page hr { width: 200px; border: none; border-top: 2px solid var(--navy); margin: 0 auto 30px; }
 .title-page .source { font-size: 0.95em; color: var(--dark-grey); }
-.title-page .date { font-size: 0.9em; color: var(--med-grey); font-style: italic; margin-top: 12px; }
+.title-page .date { font-size: 0.85em; color: var(--med-grey); font-style: italic; margin: 0 0 20px; }
 
 /* Content pages */
 .page { max-width: 850px; margin: 0 auto; padding: 40px 50px; page-break-after: always; }
@@ -64,8 +64,8 @@ td:not(:first-child) { text-align: right; }
 /* Flow diagram */
 .flow-diagram { text-align: center; margin: 14px 0 20px; }
 .flow-box {
-  display: inline-block; background: var(--light-blue); border: 2px solid var(--navy);
-  color: var(--navy); padding: 8px 28px; font-size: 0.95em; border-radius: 4px;
+  display: inline-block; width: 240px; background: var(--light-blue); border: 2px solid var(--navy);
+  color: var(--navy); padding: 8px 0; font-size: 0.95em; border-radius: 4px; text-align: center;
 }
 .flow-arrow { color: var(--navy); font-size: 1.4em; margin: 4px 0; }
 .flow-label { color: var(--med-grey); font-style: italic; font-size: 0.78em; margin-bottom: 2px; }
@@ -88,6 +88,23 @@ td:not(:first-child) { text-align: right; }
 .treemap-tooltip .tt-row { display: flex; justify-content: space-between; gap: 14px; }
 .treemap-tooltip .tt-label { color: #b0c4de; }
 
+/* Network graph */
+.net-legend { display: flex; justify-content: center; gap: 14px; margin: 6px 0 6px; flex-wrap: wrap; }
+.net-legend-item { display: flex; align-items: center; gap: 4px; font-size: 0.68em; color: var(--dark-grey); }
+.net-legend-swatch { width: 10px; height: 10px; border-radius: 2px; }
+.net-legend-line { width: 18px; height: 0; }
+.net-wrap { max-width: 850px; margin: 0 auto; }
+.net-pill { fill: #fff; stroke: none; rx: 6; opacity: 0.9; }
+.net-tooltip {
+  position: absolute; pointer-events: none; opacity: 0;
+  background: rgba(31,56,100,0.94); color: #fff;
+  padding: 8px 12px; border-radius: 4px; font-size: 12px;
+  line-height: 1.5; max-width: 320px; transition: opacity 0.15s; z-index: 10;
+}
+.net-tooltip .tt-name { font-weight: 700; font-size: 13px; margin-bottom: 2px; }
+.net-tooltip .tt-sub { font-size: 11px; color: #b0c4de; margin-bottom: 4px; }
+.net-tooltip .tt-detail { font-size: 11px; }
+
 /* Data sources footer */
 .sources { border-top: 2px solid var(--navy); margin-top: 24px; padding-top: 10px; font-size: 0.85em; }
 
@@ -103,9 +120,9 @@ td:not(:first-child) { text-align: right; }
 
 <!-- TITLE PAGE -->
 <div class="title-page">
+  <div class="date">July 2026</div>
   <h1>Business Development Companies (BDCs)</h1>
   <hr>
-  <div class="date">July 2026</div>
 </div>
 
 <!-- PAGE 2: WHAT IS A BDC -->
@@ -186,6 +203,28 @@ td:not(:first-child) { text-align: right; }
     <li>Maturity dates for most investments, with this field populated for only around 20% of holdings.</li>
   </ul>
 </div>
+
+<!-- PAGE: BLUE OWL NETWORK -->
+<div class="page">
+  <h2>Case Study: Blue Owl Capital (OWL) — Corporate Structure</h2>
+  <p>Blue Owl is the second-largest BDC manager by combined fair value ($58.6B across 5 active vehicles). Its corporate structure illustrates the multi-layered advisory model: a publicly traded holding company controls operating partnerships, which in turn own SEC-registered investment advisers, each advising one or more BDC vehicles under separate Investment Advisory Agreements.</p>
+
+  <div class="net-wrap" id="owl-network"></div>
+
+  <div class="net-legend">
+    <div class="net-legend-item"><div class="net-legend-swatch" style="background:#1F3864"></div> Parent / Holding Co</div>
+    <div class="net-legend-item"><div class="net-legend-swatch" style="background:#2171b5"></div> Investment Adviser</div>
+    <div class="net-legend-item"><div class="net-legend-swatch" style="background:#41ab5d"></div> BDC (Traded)</div>
+    <div class="net-legend-item"><div class="net-legend-swatch" style="background:#74c476"></div> BDC (Non-traded)</div>
+    <div class="net-legend-item"><div class="net-legend-line" style="border-top:2px solid #1F3864"></div> Subsidiary</div>
+    <div class="net-legend-item"><div class="net-legend-line" style="border-top:2px solid #2171b5"></div> Advisory + Admin</div>
+  </div>
+
+  <div class="footnote">
+    Blue Owl Capital Inc. formed May 2021 via Owl Rock + Dyal Capital + Altimar (SPAC). OBDE merged into OBDC Jan 2025; OTF II merged into OTF Mar 2025. OBDC–OBDC II merger announced Nov 2025 but terminated after investor revolt. FV from XBRL BDC Data Sets (Q1 2025, FY2024 period).
+  </div>
+</div>
+<div class="net-tooltip" id="net-tooltip"></div>
 
 <!-- PAGE 5: WHAT IS NOT IN XBRL -->
 <div class="page">
@@ -477,6 +516,127 @@ let bdcMaxC = 0;
         .attr('fill', textColour).attr('font-size', (fontSize - 2) + 'px')
         .attr('font-family', 'Calibri, sans-serif').attr('opacity', 0.7);
     }
+  });
+}
+
+// ── Blue Owl Network Graph ──
+{
+  const W = 1100;
+  const H = 520;
+  const cx = W / 2;
+  const containerW = Math.min(850, document.getElementById('owl-network').clientWidth || 850);
+
+  const nodes = [
+    {id:"OWL", x:cx, y:45, w:220, h:48,
+     label:["Blue Owl Capital Inc."], sub:"NYSE: OWL", type:"parent",
+     detail:"Publicly traded holding company. Formed May 2021 via combination of Owl Rock Capital Group + Dyal Capital Partners + Altimar Acquisition Corp (SPAC)."},
+    {id:"Holdings", x:cx, y:140, w:220, h:48,
+     label:["Blue Owl Capital","Holdings LP"], sub:"Operating Partnership", type:"parent",
+     detail:"Delaware LP. Operating entity through which all business lines are conducted. Three platforms: Credit, GP Strategic Capital, Real Assets."},
+    {id:"OCA", x:cx-270, y:265, w:195, h:56,
+     label:["Blue Owl Credit","Advisors LLC"], sub:"RIA — Credit Platform", type:"adviser",
+     detail:"SEC-registered investment adviser. Advises OBDC, OBDC II, and OCIC under Investment Advisory Agreements. Also serves as Administrator for each."},
+    {id:"OTCA", x:cx+170, y:265, w:195, h:56,
+     label:["Blue Owl Technology","Credit Advisors LLC"], sub:"RIA — Technology Platform", type:"adviser",
+     detail:"SEC-registered RIA (CRD# 297497). Advises OTF under Investment Advisory Agreement. Also serves as Administrator."},
+    {id:"OTCA2", x:cx+420, y:265, w:195, h:56,
+     label:["Blue Owl Technology","Credit Advisors II LLC"], sub:"RIA — Technology Platform", type:"adviser",
+     detail:"SEC-registered RIA. Advises OTIC. Previously also advised OTF II (now merged into OTF). Also serves as Administrator."},
+    {id:"OBDC", x:cx-450, y:420, w:170, h:56,
+     label:["Blue Owl","Capital Corp."], sub:"NYSE: OBDC  |  $13.2B FV", type:"bdc-traded",
+     detail:"IPO Jul 2019. Direct lending to US middle-market. Absorbed OBDE Jan 2025. 748 companies, 1,357 holdings."},
+    {id:"OBDC2", x:cx-270, y:420, w:170, h:56,
+     label:["Blue Owl","Capital Corp. II"], sub:"Non-traded  |  $2.0B FV", type:"bdc-nontraded",
+     detail:"Non-traded BDC. Formed Mar 2017. Same strategy as OBDC. 372 companies, 754 holdings."},
+    {id:"OCIC", x:cx-90, y:420, w:170, h:56,
+     label:["Blue Owl Credit","Income Corp."], sub:"Non-traded  |  $26.4B FV", type:"bdc-nontraded",
+     detail:"Perpetual-life non-traded BDC. Formed Apr 2020. Senior secured floating rate loans. 698 cos, 1,179 holdings. Largest Blue Owl BDC by FV."},
+    {id:"OTF", x:cx+170, y:420, w:170, h:56,
+     label:["Blue Owl Technology","Finance Corp."], sub:"NYSE: OTF  |  $6.4B FV", type:"bdc-traded",
+     detail:"Founded 2018. NYSE direct listing Jun 2025. Software/technology-focused lending. Absorbed OTF II Mar 2025. 311 cos, 645 holdings."},
+    {id:"OTIC", x:cx+420, y:420, w:170, h:56,
+     label:["Blue Owl Technology","Income Corp."], sub:"Non-traded  |  $5.2B FV", type:"bdc-nontraded",
+     detail:"Perpetual-life non-traded BDC. Formed Jun 2021. Technology/software focus. 452 cos, 743 holdings."}
+  ];
+
+  const netLinks = [
+    {source:"OWL", target:"Holdings", type:"subsidiary", label:"Subsidiary"},
+    {source:"Holdings", target:"OCA", type:"subsidiary", label:"Subsidiary"},
+    {source:"Holdings", target:"OTCA", type:"subsidiary", label:"Subsidiary"},
+    {source:"Holdings", target:"OTCA2", type:"subsidiary", label:"Subsidiary"},
+    {source:"OCA", target:"OBDC", type:"advisory", label:"Advisory + Admin"},
+    {source:"OCA", target:"OBDC2", type:"advisory", label:"Advisory + Admin"},
+    {source:"OCA", target:"OCIC", type:"advisory", label:"Advisory + Admin"},
+    {source:"OTCA", target:"OTF", type:"advisory", label:"Advisory + Admin"},
+    {source:"OTCA2", target:"OTIC", type:"advisory", label:"Advisory + Admin"}
+  ];
+
+  const netColors = {parent:"#1F3864", adviser:"#2171b5", "bdc-traded":"#41ab5d", "bdc-nontraded":"#74c476"};
+  const netSvg = d3.select('#owl-network').append('svg')
+    .attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('width', containerW)
+    .attr('height', containerW * H / W);
+  const netTip = document.getElementById('net-tooltip');
+
+  function getN(id) { return nodes.find(n => n.id === id); }
+  function edgePts(s, t) { return { x1:s.x, y1:s.y+s.h/2, x2:t.x, y2:t.y-t.h/2 }; }
+
+  const defs = netSvg.append('defs');
+  [['net-arrow-sub','#1F3864'],['net-arrow-adv','#2171b5']].forEach(([id,col]) => {
+    defs.append('marker').attr('id',id).attr('viewBox','0 0 6 4').attr('refX',5.5).attr('refY',2)
+      .attr('markerWidth',5).attr('markerHeight',4).attr('orient','auto')
+      .append('path').attr('d','M0,0 L6,2 L0,4 Z').attr('fill',col);
+  });
+
+  netLinks.forEach(lk => {
+    const s = getN(lk.source), t = getN(lk.target);
+    const pts = edgePts(s, t);
+    const col = lk.type === 'advisory' ? '#2171b5' : '#1F3864';
+    const marker = lk.type === 'advisory' ? 'url(#net-arrow-adv)' : 'url(#net-arrow-sub)';
+
+    netSvg.append('line')
+      .attr('x1',pts.x1).attr('y1',pts.y1).attr('x2',pts.x2).attr('y2',pts.y2)
+      .attr('stroke',col).attr('stroke-width',1.5).attr('marker-end',marker);
+
+    if (lk.label) {
+      const mx = (pts.x1+pts.x2)/2, my = (pts.y1+pts.y2)/2;
+      const angle = Math.atan2(pts.y2-pts.y1, pts.x2-pts.x1)*180/Math.PI;
+      const rot = angle>90 ? angle-180 : angle<-90 ? angle+180 : angle;
+      const g = netSvg.append('g').attr('transform',`translate(${mx},${my}) rotate(${rot})`);
+      const fs = lk.type==='advisory' ? 9 : 8.5;
+      const pw = lk.label.length*fs*0.52+10, ph = 12;
+      g.append('rect').attr('x',-pw/2).attr('y',-ph-1).attr('width',pw).attr('height',ph).attr('class','net-pill');
+      g.append('text').attr('x',0).attr('y',-ph/2+3).text(lk.label)
+        .attr('text-anchor','middle').attr('font-family','Calibri, sans-serif')
+        .attr('font-size',fs+'px').attr('font-weight',700).attr('fill',col);
+    }
+  });
+
+  nodes.forEach(nd => {
+    const g = netSvg.append('g').attr('transform',`translate(${nd.x},${nd.y})`);
+    g.append('rect').attr('x',-nd.w/2).attr('y',-nd.h/2).attr('width',nd.w).attr('height',nd.h)
+      .attr('rx',5).attr('fill',netColors[nd.type]).attr('stroke','#fff').attr('stroke-width',1.5)
+      .style('cursor','pointer')
+      .on('mouseover', function(e) {
+        d3.select(this).attr('stroke','#FFD700').attr('stroke-width',2.5);
+        netTip.innerHTML = '<div class="tt-name">'+nd.label.join(' ')+'</div><div class="tt-sub">'+nd.sub+'</div><div class="tt-detail">'+nd.detail+'</div>';
+        netTip.style.opacity=1;
+      })
+      .on('mousemove', function(e) { netTip.style.left=(e.pageX+14)+'px'; netTip.style.top=(e.pageY-10)+'px'; })
+      .on('mouseout', function() { d3.select(this).attr('stroke','#fff').attr('stroke-width',1.5); netTip.style.opacity=0; });
+
+    const lines = nd.label;
+    const lineH = 12, gap = 3;
+    const blockH = (lines.length*lineH)+gap+8;
+    const topY = -blockH/2;
+    lines.forEach((line,i) => {
+      g.append('text').attr('x',0).attr('y',topY+i*lineH+lineH*0.7).text(line)
+        .attr('text-anchor','middle').attr('fill','#fff').attr('font-size','10px').attr('font-weight',600)
+        .attr('font-family','Calibri, sans-serif').style('pointer-events','none');
+    });
+    g.append('text').attr('x',0).attr('y',topY+lines.length*lineH+gap+6).text(nd.sub)
+      .attr('text-anchor','middle').attr('fill','#fff').attr('font-size','8px')
+      .attr('font-family','Calibri, sans-serif').attr('opacity',0.8).style('pointer-events','none');
   });
 }
 </script>
