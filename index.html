@@ -143,6 +143,16 @@ td:not(:first-child) { text-align: right; }
 <div class="page">
   <h2>The BDC Universe</h2>
 
+  <h3>Top 50 BDCs by Fair Value</h3>
+  <p style="font-size:0.85em; color:#787878; margin-bottom:6px;">Rectangle size = fair value ($B). Colour intensity = number of portfolio companies. Hover for details.</p>
+  <div class="treemap-legend">
+    <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#c6dbef"></div> Fewer companies</div>
+    <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#3182bd"></div></div>
+    <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#08306b"></div> More companies</div>
+  </div>
+  <div class="treemap-wrap" id="treemap"></div>
+  <div class="footnote">FV = aggregate Investment Owned at Fair Value from XBRL filings (FY2024 period). Companies = unique Investment Identifier Axis values in SOI data.</div>
+
   <h3>Top 7 BDCs by AUM: Advisory Agreement Pairs</h3>
   <table>
     <tr><th>Parent Manager</th><th>BDC Name</th><th>Ticker</th><th>Founded</th><th>FV ($B)</th><th>Holdings</th><th>Companies</th></tr>
@@ -165,20 +175,6 @@ td:not(:first-child) { text-align: right; }
     <li>Maturity dates for most investments, with this field populated for only around 20% of holdings.</li>
   </ul>
 </div>
-
-<!-- PAGE 4: TOP 50 TREEMAP -->
-<div class="page">
-  <h2>Top 50 BDCs by Fair Value</h2>
-  <p>Rectangle size represents fair value ($B). Colour intensity indicates number of portfolio companies (darker = more companies). Hover for details.</p>
-  <div class="treemap-legend">
-    <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#c6dbef"></div> Fewer companies</div>
-    <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#3182bd"></div></div>
-    <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#08306b"></div> More companies</div>
-  </div>
-  <div class="treemap-wrap" id="treemap"></div>
-  <div class="footnote">FV = aggregate Investment Owned at Fair Value from XBRL filings (FY2024 period). Companies = unique Investment Identifier Axis values in SOI data.</div>
-</div>
-<div class="treemap-tooltip" id="treemap-tooltip"></div>
 
 <!-- PAGE 5: WHAT IS NOT IN XBRL -->
 <div class="page">
@@ -204,6 +200,7 @@ td:not(:first-child) { text-align: right; }
 </div>
 
 
+<div class="treemap-tooltip" id="treemap-tooltip"></div>
 <script>
 (function() {
   const data = [
