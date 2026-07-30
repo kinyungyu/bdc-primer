@@ -141,6 +141,16 @@ td:not(:first-child) { text-align: right; }
 <div class="page">
   <h2>The BDC Universe</h2>
 
+  <h3>Top 50 BDCs by Parent Company</h3>
+  <p style="font-size:0.85em; color:#787878; margin-bottom:6px;">Rectangle size = combined fair value ($B) across BDC vehicles. Colour = number of BDC vehicles managed. Hover for details.</p>
+  <div class="treemap-legend">
+    <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#6baed6"></div> 1 BDC</div>
+    <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#2171b5"></div> 2 BDCs</div>
+    <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#084594"></div> 3+ BDCs</div>
+  </div>
+  <div class="treemap-wrap" id="treemap-parents"></div>
+  <div class="footnote">32 parent groups from top 50 BDCs by FV. Source: SEC EDGAR XBRL BDC Data Sets (Q1 2025, FY2024 period).</div>
+
   <h3>Top 50 BDCs by Fair Value</h3>
   <p style="font-size:0.85em; color:#787878; margin-bottom:6px;">Rectangle size = fair value ($B). Colour intensity = number of portfolio companies. Hover for details.</p>
   <div class="treemap-legend">
@@ -200,6 +210,108 @@ td:not(:first-child) { text-align: right; }
 
 <div class="treemap-tooltip" id="treemap-tooltip"></div>
 <script>
+// Parent company treemap
+(function() {
+  const data = [
+    {s:"Blackstone (BX)",fv:81.5,c:3216,h:4661,n:2},
+    {s:"Blue Owl Capital (OWL)",fv:58.6,c:2960,h:5387,n:6},
+    {s:"Ares Management (ARES)",fv:38.2,c:2663,h:4823,n:2},
+    {s:"Apollo Global (APO)",fv:17.6,c:3147,h:4190,n:2},
+    {s:"HPS Investment Partners",fv:16.1,c:1048,h:1835,n:1},
+    {s:"KKR (KKR)",fv:14.6,c:852,h:1790,n:1},
+    {s:"Goldman Sachs (GS)",fv:13.3,c:2239,h:2724,n:3},
+    {s:"Golub Capital (Private)",fv:12.8,c:2623,h:4928,n:2},
+    {s:"Sixth Street (SSSS)",fv:10.7,c:607,h:728,n:2},
+    {s:"Morgan Stanley (MS)",fv:9.9,c:2079,h:3132,n:2},
+    {s:"Oaktree / Brookfield",fv:8.0,c:881,h:2220,n:2},
+    {s:"Barings / MassMutual",fv:5.6,c:2400,h:4345,n:2},
+    {s:"New Mountain Capital",fv:5.1,c:1157,h:2230,n:2},
+    {s:"Main Street Capital (MAIN)",fv:4.9,c:789,h:2080,n:1},
+    {s:"MSD Partners (Private)",fv:4.5,c:287,h:362,n:1},
+    {s:"Monroe Capital (Private)",fv:4.0,c:1119,h:1793,n:1},
+    {s:"Franklin Templeton (BEN)",fv:4.0,c:742,h:1182,n:1},
+    {s:"Nuveen / TIAA",fv:3.8,c:1559,h:1904,n:2},
+    {s:"Carlyle Group (CG)",fv:3.8,c:797,h:1480,n:2},
+    {s:"Hercules Capital (HTGC)",fv:3.7,c:619,h:959,n:1},
+    {s:"TPG (TPG)",fv:3.2,c:760,h:1318,n:1},
+    {s:"Stone Point Capital",fv:2.5,c:354,h:521,n:1},
+    {s:"Bain Capital (Private)",fv:2.4,c:1143,h:1842,n:1},
+    {s:"PennantPark (PFLT)",fv:2.2,c:1247,h:1269,n:1},
+    {s:"Antares Capital",fv:2.1,c:1014,h:1023,n:1},
+    {s:"T. Rowe Price (TROW)",fv:2.1,c:384,h:663,n:1},
+    {s:"CION Investments",fv:2.0,c:507,h:852,n:1},
+    {s:"BlackRock (BLK)",fv:1.8,c:639,h:853,n:1},
+    {s:"FS Investments / KKR",fv:1.8,c:196,h:396,n:1},
+    {s:"Capital Southwest (CSWC)",fv:1.7,c:464,h:1277,n:1},
+    {s:"Trinity Capital (TRIN)",fv:1.7,c:881,h:1299,n:1},
+    {s:"Crescent Capital",fv:1.6,c:1166,h:1455,n:1}
+  ];
+
+  const colourByCount = n => n >= 3 ? '#084594' : n === 2 ? '#2171b5' : '#6baed6';
+  const container = document.getElementById('treemap-parents');
+  const width = Math.min(750, container.clientWidth || 750);
+  const height = Math.round(width * 0.58);
+
+  const svg = d3.select('#treemap-parents').append('svg').attr('width', width).attr('height', height);
+  const hierarchy = d3.hierarchy({children: data}).sum(d => d.fv);
+  d3.treemap().size([width, height]).padding(2).round(true)(hierarchy);
+
+  const tooltip = document.getElementById('treemap-tooltip');
+
+  const cells = svg.selectAll('g').data(hierarchy.leaves()).join('g')
+    .attr('transform', d => `translate(${d.x0},${d.y0})`);
+
+  cells.append('rect')
+    .attr('width', d => d.x1 - d.x0).attr('height', d => d.y1 - d.y0)
+    .attr('fill', d => colourByCount(d.data.n))
+    .attr('stroke', '#fff').attr('stroke-width', 1.5).attr('rx', 2)
+    .style('cursor', 'pointer')
+    .on('mouseover', function(e, d) {
+      d3.select(this).attr('stroke', '#FFD700').attr('stroke-width', 2.5);
+      tooltip.innerHTML =
+        '<div class="tt-name">' + d.data.s + '</div>' +
+        '<div class="tt-row"><span class="tt-label">Combined FV</span><span>$' + d.data.fv + 'B</span></div>' +
+        '<div class="tt-row"><span class="tt-label">BDC Vehicles</span><span>' + d.data.n + '</span></div>' +
+        '<div class="tt-row"><span class="tt-label">Portfolio Cos</span><span>' + d.data.c.toLocaleString() + '</span></div>' +
+        '<div class="tt-row"><span class="tt-label">Total Holdings</span><span>' + d.data.h.toLocaleString() + '</span></div>';
+      tooltip.style.opacity = 1;
+    })
+    .on('mousemove', function(e) {
+      tooltip.style.left = (e.pageX + 14) + 'px';
+      tooltip.style.top = (e.pageY - 10) + 'px';
+    })
+    .on('mouseout', function() {
+      d3.select(this).attr('stroke', '#fff').attr('stroke-width', 1.5);
+      tooltip.style.opacity = 0;
+    });
+
+  cells.each(function(d) {
+    const w = d.x1 - d.x0, h = d.y1 - d.y0;
+    const g = d3.select(this);
+    if (w < 40 || h < 24) return;
+    const fontSize = w > 140 && h > 55 ? 12 : w > 100 && h > 40 ? 10.5 : w > 60 && h > 30 ? 9 : 8;
+    let label = d.data.s;
+    const maxChars = Math.floor((w - 8) / (fontSize * 0.52));
+    if (label.length > maxChars) label = label.substring(0, maxChars - 1) + '…';
+    g.append('text').attr('x', 5).attr('y', fontSize + 4).text(label)
+      .attr('fill', '#fff').attr('font-size', fontSize + 'px')
+      .attr('font-weight', 700).attr('font-family', 'Calibri, sans-serif');
+    if (h > 40) {
+      g.append('text').attr('x', 5).attr('y', fontSize * 2 + 6)
+        .text('$' + d.data.fv + 'B')
+        .attr('fill', '#fff').attr('font-size', (fontSize - 1) + 'px')
+        .attr('font-family', 'Calibri, sans-serif').attr('opacity', 0.85);
+    }
+    if (h > 56 && w > 70) {
+      g.append('text').attr('x', 5).attr('y', fontSize * 3 + 5)
+        .text(d.data.n + (d.data.n === 1 ? ' BDC' : ' BDCs') + ' · ' + d.data.c.toLocaleString() + ' cos')
+        .attr('fill', '#fff').attr('font-size', (fontSize - 2) + 'px')
+        .attr('font-family', 'Calibri, sans-serif').attr('opacity', 0.7);
+    }
+  });
+})();
+
+// Individual BDC treemap
 (function() {
   const data = [
     {s:"Blackstone Private Credit",fv:68.4,c:2507,h:3584},
