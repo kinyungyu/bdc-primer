@@ -150,52 +150,16 @@ td:not(:first-child) { text-align: right; }
   </table>
   <div class="footnote">FV from latest public filings. Holdings/companies from XBRL SOI data (Q1 2025 data set, FY2024 period).</div>
 
-  <h3>XBRL Data: What It Gives You and What It Does Not</h3>
-  <p>The XBRL data gives you the quantitative skeleton &mdash; what they own, how much it cost, and what it is worth &mdash; but the qualitative context (why, how, what is the risk) lives only in the prose of the 10-K.</p>
-  <p>Core fields like fair value (91% populated), cost basis (80%), principal (58%), and spread (48%) are reliably available across the universe. However, the XBRL data does not provide a geographic breakdown at the holding level (only portfolio-level concentration percentages), nor does it include borrower business descriptions. Sector labels are attached only to subtotal rows, not individual holdings. Critical risk flags &mdash; non-accrual status, reference rate type, fixed vs. floating structure, co-investment with affiliates &mdash; are encoded in 10-K footnotes and must be extracted by parsing the HTML filing.</p>
-</div>
-
-<!-- PAGE 4: OTF CASE STUDY -->
-<div class="page">
-  <h2>Case Study: OTF Portfolio Profile</h2>
-  <p>Blue Owl Technology Finance Corp. (OTF) is a technology-focused BDC managed by Blue Owl Capital. Its FY2025 10-K (filed 18 Feb 2026) provides a detailed case study of BDC portfolio composition and the data available through XBRL vs. the full filing.</p>
-
-  <div class="stat-row">
-    <div class="stat-box"><div class="value">496</div><div class="label">Holdings</div></div>
-    <div class="stat-box"><div class="value">322</div><div class="label">Companies</div></div>
-    <div class="stat-box"><div class="value">$15.6B</div><div class="label">Total FV</div></div>
-    <div class="stat-box"><div class="value">$1.4B</div><div class="label">Unrealised G/L</div></div>
-  </div>
-
-  <h3>Sector Breakdown (Top 10 by Fair Value)</h3>
-  <table>
-    <tr><th>Sector</th><th>% of Portfolio</th></tr>
-    <tr><td>Application Software</td><td>21.3%</td></tr>
-    <tr><td>Systems Software</td><td>10.8%</td></tr>
-    <tr><td>Insurance</td><td>7.6%</td></tr>
-    <tr><td>Diversified Financial Services</td><td>6.4%</td></tr>
-    <tr><td>IT Services</td><td>6.2%</td></tr>
-    <tr><td>Health Care Technology</td><td>5.9%</td></tr>
-    <tr><td>Professional Services</td><td>4.5%</td></tr>
-    <tr><td>Interactive Media &amp; Services</td><td>3.7%</td></tr>
-    <tr><td>Health Care Providers &amp; Services</td><td>3.2%</td></tr>
-    <tr><td>Data Processing &amp; Outsourced Services</td><td>2.9%</td></tr>
-  </table>
-
-  <h3>Geographic Concentration (% of Fair Value)</h3>
-  <table>
-    <tr><th>Region</th><th>FY2025</th><th>FY2024</th><th>Change</th></tr>
-    <tr><td class="bold-cell">United States (total)</td><td>90.1%</td><td>85.3%</td><td>+4.8pp</td></tr>
-    <tr><td>&emsp;West</td><td>27.8%</td><td>28.7%</td><td>-0.9pp</td></tr>
-    <tr><td>&emsp;South</td><td>24.2%</td><td>19.8%</td><td>+4.4pp</td></tr>
-    <tr><td>&emsp;Northeast</td><td>21.8%</td><td>15.9%</td><td>+5.9pp</td></tr>
-    <tr><td>&emsp;Midwest</td><td>16.3%</td><td>20.9%</td><td>-4.6pp</td></tr>
-    <tr><td class="bold-cell">International (total)</td><td>9.9%</td><td>14.7%</td><td>-4.8pp</td></tr>
-    <tr><td>&emsp;United Kingdom</td><td>5.5%</td><td>5.2%</td><td>+0.3pp</td></tr>
-    <tr><td>&emsp;Canada</td><td>2.3%</td><td>3.0%</td><td>-0.7pp</td></tr>
-    <tr><td>&emsp;Other (8 countries)</td><td>2.1%</td><td>6.5%</td><td>-4.4pp</td></tr>
-  </table>
-  <div class="footnote">Note: geography is portfolio-level only (from XBRL concentration risk data). Not available per holding.</div>
+  <h3>Detailed information only available within 10-K</h3>
+  <p>Data on the underlying portfolio companies is available in XBRL files; however, these files capture only approximately 60&ndash;70% of the holding-level information contained in a 10-K filing. This missing information is particularly important for credit quality assessment and concentration risk analysis.</p>
+  <p>The XBRL data provides the quantitative foundation of the portfolio, what assets are held, their cost basis, and their fair value. However, the qualitative context, including why investments were made, how they are managed, and the associated risks, is available only in the accompanying 10-K.</p>
+  <p>Key information that is not captured in the XBRL data includes:</p>
+  <ul>
+    <li>Geographic exposure at the individual holding level (only portfolio-level concentration percentages are provided).</li>
+    <li>Borrower or portfolio company business descriptions.</li>
+    <li>Sector classifications for individual holdings, as sector labels are assigned only to subtotal rows rather than each investment.</li>
+    <li>Maturity dates for most investments, with this field populated for only around 20% of holdings.</li>
+  </ul>
 </div>
 
 <!-- PAGE 5: WHAT IS NOT IN XBRL -->
@@ -221,35 +185,6 @@ td:not(:first-child) { text-align: right; }
   <div class="footnote">Population rates are across all 114,738 SOI rows in the Q1 2025 data set. The soi.tsv file contains 190+ columns but most are sparsely populated.</div>
 </div>
 
-<!-- PAGE 6: PRACTICAL IMPLICATIONS -->
-<div class="page">
-  <h2>Practical Implications for Investors</h2>
-  <p>The XBRL BDC data sets provide approximately 60&ndash;70% of the holding-level information contained in a 10-K Schedule of Investments. The gap matters most for credit quality assessment and concentration risk analysis.</p>
-
-  <h3>XBRL is best for:</h3>
-  <ul>
-    <li>Screening across 150+ BDCs simultaneously (portfolio size, spread, maturity profiles)</li>
-    <li>Peer comparison at scale (cost basis vs. FV, leverage, sector allocation)</li>
-    <li>Portfolio construction signals (largest holdings overlap, sector concentration)</li>
-    <li>Quantitative analysis (spread distributions, principal amounts, interest rate exposure)</li>
-  </ul>
-
-  <h3>HTML filing parsing is essential for:</h3>
-  <ul>
-    <li>Credit quality assessment (non-accrual identification, recovery analysis)</li>
-    <li>Interest rate sensitivity (reference rate type, fixed vs. floating breakdown)</li>
-    <li>Regulatory compliance analysis (qualifying asset %, Section 55 flags)</li>
-    <li>Affiliated transaction monitoring (co-investment flags, controlled companies)</li>
-    <li>Deep-dive single-name analysis (footnote context, unfunded commitments)</li>
-  </ul>
-
-  <h3>Recommended Workflow</h3>
-  <p>1. Start with XBRL data sets for broad screening and peer comparison across the full BDC universe. The soi.tsv file gives you fair value, cost, spread, and principal for 75&ndash;91% of holdings across all 153 reporting BDCs.</p>
-  <p>2. For target BDCs, download the inline XBRL filing (10-K or 10-Q) from EDGAR and parse the HTML to extract: sector mapping (from document structure), footnote flags (from ix:footnote and ix:relationship elements), and reference rate types.</p>
-  <p>3. Key gap to watch: maturity date is populated in XBRL for only 20% of holdings globally, but is almost always present in the rendered HTML table. Sector is populated for only 10% of XBRL rows. These two fields alone often justify the HTML parsing step.</p>
-
-  <div class="sources">Data sources: SEC EDGAR XBRL BDC Data Sets (Q1 2025 quarterly, February 2026 monthly). OTF 10-K for fiscal year ended 31 December 2025, filed 18 February 2026 (CIK 0001747777, accession 0001747777-26-000012). Analysis performed July 2026.</div>
-</div>
 
 </body>
 </html>
