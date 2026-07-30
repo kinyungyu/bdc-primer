@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>BDC Primer — Structure, Exposures &amp; XBRL Data Coverage</title>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <style>
 :root {
   --navy: #1F3864;
@@ -71,6 +72,21 @@ td:not(:first-child) { text-align: right; }
 
 /* Footnotes */
 .footnote { font-size: 0.78em; color: var(--med-grey); font-style: italic; margin-top: 6px; }
+
+/* Treemap */
+.treemap-wrap { max-width: 800px; margin: 14px auto 10px; }
+.treemap-legend { display: flex; justify-content: center; gap: 20px; margin: 8px 0 10px; flex-wrap: wrap; }
+.treemap-legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.78em; color: var(--dark-grey); }
+.treemap-legend-swatch { width: 14px; height: 14px; border-radius: 2px; }
+.treemap-tooltip {
+  position: absolute; pointer-events: none; opacity: 0;
+  background: rgba(31,56,100,0.94); color: #fff;
+  padding: 8px 12px; border-radius: 4px; font-size: 12px;
+  line-height: 1.5; max-width: 260px; transition: opacity 0.15s; z-index: 10;
+}
+.treemap-tooltip .tt-name { font-weight: 700; font-size: 13px; margin-bottom: 3px; }
+.treemap-tooltip .tt-row { display: flex; justify-content: space-between; gap: 14px; }
+.treemap-tooltip .tt-label { color: #b0c4de; }
 
 /* Data sources footer */
 .sources { border-top: 2px solid var(--navy); margin-top: 24px; padding-top: 10px; font-size: 0.85em; }
@@ -150,6 +166,20 @@ td:not(:first-child) { text-align: right; }
   </ul>
 </div>
 
+<!-- PAGE 4: TOP 50 TREEMAP -->
+<div class="page">
+  <h2>Top 50 BDCs by Fair Value</h2>
+  <p>Rectangle size represents fair value ($B). Colour intensity indicates number of portfolio companies (darker = more companies). Hover for details.</p>
+  <div class="treemap-legend">
+    <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#c6dbef"></div> Fewer companies</div>
+    <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#3182bd"></div></div>
+    <div class="treemap-legend-item"><div class="treemap-legend-swatch" style="background:#08306b"></div> More companies</div>
+  </div>
+  <div class="treemap-wrap" id="treemap"></div>
+  <div class="footnote">FV = aggregate Investment Owned at Fair Value from XBRL filings (FY2024 period). Companies = unique Investment Identifier Axis values in SOI data.</div>
+</div>
+<div class="treemap-tooltip" id="treemap-tooltip"></div>
+
 <!-- PAGE 5: WHAT IS NOT IN XBRL -->
 <div class="page">
   <h2>What is NOT in XBRL</h2>
@@ -174,5 +204,127 @@ td:not(:first-child) { text-align: right; }
 </div>
 
 
+<script>
+(function() {
+  const data = [
+    {s:"Blackstone Private Credit",fv:68.4,c:2507,h:3584},
+    {s:"Ares Capital",fv:26.7,c:1726,h:3302},
+    {s:"Blue Owl Credit Income",fv:26.4,c:698,h:1179},
+    {s:"HPS Corporate Lending",fv:16.1,c:1048,h:1835},
+    {s:"Apollo Debt Solutions",fv:14.6,c:1317,h:1872},
+    {s:"FS KKR Capital",fv:14.6,c:852,h:1790},
+    {s:"Blue Owl Capital",fv:13.2,c:748,h:1357},
+    {s:"Blackstone Secured Lending",fv:13.1,c:709,h:1077},
+    {s:"Ares Strategic Income",fv:11.5,c:937,h:1521},
+    {s:"Golub Capital BDC",fv:8.7,c:1957,h:3615},
+    {s:"Goldman Sachs Private Credit",fv:7.3,c:719,h:868},
+    {s:"Sixth Street Lending Partners",fv:7.2,c:190,h:218},
+    {s:"Blue Owl Technology Finance",fv:6.4,c:311,h:645},
+    {s:"North Haven Private Income",fv:6.1,c:922,h:1545},
+    {s:"Blue Owl Tech Finance II",fv:5.4,c:379,h:709},
+    {s:"Blue Owl Technology Income",fv:5.2,c:452,h:743},
+    {s:"Oaktree Strategic Credit",fv:5.0,c:388,h:892},
+    {s:"Main Street Capital",fv:4.9,c:789,h:2080},
+    {s:"MSD Investment",fv:4.5,c:287,h:362},
+    {s:"Golub Capital Private Credit",fv:4.1,c:666,h:1313},
+    {s:"Monroe Capital Income Plus",fv:4.0,c:1119,h:1793},
+    {s:"Franklin BSP Capital",fv:4.0,c:742,h:1182},
+    {s:"Morgan Stanley Direct Lending",fv:3.8,c:1157,h:1587},
+    {s:"Hercules Capital",fv:3.7,c:619,h:959},
+    {s:"Sixth Street Specialty Lending",fv:3.5,c:417,h:510},
+    {s:"Goldman Sachs BDC",fv:3.5,c:968,h:1168},
+    {s:"TPG Twin Brook Capital Income",fv:3.2,c:760,h:1318},
+    {s:"New Mountain Finance",fv:3.1,c:833,h:1541},
+    {s:"Barings Private Credit",fv:3.1,c:1147,h:1902},
+    {s:"MidCap Financial Investment",fv:3.0,c:1830,h:2318},
+    {s:"Oaktree Specialty Lending",fv:3.0,c:493,h:1328},
+    {s:"GS Private MM Credit II",fv:2.5,c:552,h:688},
+    {s:"Barings BDC",fv:2.5,c:1253,h:2443},
+    {s:"Stone Point Credit",fv:2.5,c:354,h:521},
+    {s:"Bain Capital Specialty Finance",fv:2.4,c:1143,h:1842},
+    {s:"PennantPark Floating Rate",fv:2.2,c:1247,h:1269},
+    {s:"Antares Strategic Credit",fv:2.1,c:1014,h:1023},
+    {s:"Nuveen Churchill Direct Lending",fv:2.1,c:852,h:1014},
+    {s:"T. Rowe Price OHA Select",fv:2.1,c:384,h:663},
+    {s:"CION Investment",fv:2.0,c:507,h:852},
+    {s:"Blue Owl Capital II",fv:2.0,c:372,h:754},
+    {s:"Carlyle Credit Solutions",fv:2.0,c:332,h:595},
+    {s:"New Mountain Private Credit",fv:2.0,c:324,h:689},
+    {s:"BlackRock TCP Capital",fv:1.8,c:639,h:853},
+    {s:"Carlyle Secured Lending",fv:1.8,c:465,h:885},
+    {s:"FS Specialty Lending",fv:1.8,c:196,h:396},
+    {s:"Capital Southwest",fv:1.7,c:464,h:1277},
+    {s:"Trinity Capital",fv:1.7,c:881,h:1299},
+    {s:"Nuveen Churchill Private Capital",fv:1.7,c:707,h:890},
+    {s:"Crescent Capital BDC",fv:1.6,c:1166,h:1455}
+  ];
+
+  const maxC = Math.max(...data.map(d => d.c));
+  const minC = Math.min(...data.map(d => d.c));
+  const colourScale = d3.scaleSequential().domain([minC, maxC]).interpolator(d3.interpolateBlues);
+
+  const container = document.getElementById('treemap');
+  const width = Math.min(800, container.clientWidth || 800);
+  const height = Math.round(width * 0.62);
+
+  const svg = d3.select('#treemap').append('svg').attr('width', width).attr('height', height);
+  const hierarchy = d3.hierarchy({children: data}).sum(d => d.fv);
+  d3.treemap().size([width, height]).padding(2).round(true)(hierarchy);
+
+  const tooltip = document.getElementById('treemap-tooltip');
+
+  const cells = svg.selectAll('g').data(hierarchy.leaves()).join('g')
+    .attr('transform', d => `translate(${d.x0},${d.y0})`);
+
+  cells.append('rect')
+    .attr('width', d => d.x1 - d.x0).attr('height', d => d.y1 - d.y0)
+    .attr('fill', d => colourScale(d.data.c))
+    .attr('stroke', '#fff').attr('stroke-width', 1.5).attr('rx', 2)
+    .style('cursor', 'pointer')
+    .on('mouseover', function(e, d) {
+      d3.select(this).attr('stroke', '#FFD700').attr('stroke-width', 2.5);
+      tooltip.innerHTML =
+        '<div class="tt-name">' + d.data.s + '</div>' +
+        '<div class="tt-row"><span class="tt-label">Fair Value</span><span>$' + d.data.fv + 'B</span></div>' +
+        '<div class="tt-row"><span class="tt-label">Companies</span><span>' + d.data.c.toLocaleString() + '</span></div>' +
+        '<div class="tt-row"><span class="tt-label">Holdings</span><span>' + d.data.h.toLocaleString() + '</span></div>';
+      tooltip.style.opacity = 1;
+    })
+    .on('mousemove', function(e) {
+      tooltip.style.left = (e.pageX + 14) + 'px';
+      tooltip.style.top = (e.pageY - 10) + 'px';
+    })
+    .on('mouseout', function() {
+      d3.select(this).attr('stroke', '#fff').attr('stroke-width', 1.5);
+      tooltip.style.opacity = 0;
+    });
+
+  cells.each(function(d) {
+    const w = d.x1 - d.x0, h = d.y1 - d.y0;
+    const g = d3.select(this);
+    const textColour = d.data.c > (maxC * 0.45) ? '#fff' : '#1F3864';
+    if (w < 36 || h < 22) return;
+    const fontSize = w > 120 && h > 50 ? 11.5 : w > 80 && h > 36 ? 10 : 8.5;
+    let label = d.data.s;
+    const maxChars = Math.floor((w - 8) / (fontSize * 0.55));
+    if (label.length > maxChars) label = label.substring(0, maxChars - 1) + '…';
+    g.append('text').attr('x', 4).attr('y', fontSize + 3).text(label)
+      .attr('fill', textColour).attr('font-size', fontSize + 'px')
+      .attr('font-weight', 600).attr('font-family', 'Calibri, sans-serif');
+    if (h > 36) {
+      g.append('text').attr('x', 4).attr('y', fontSize * 2 + 5)
+        .text('$' + d.data.fv + 'B')
+        .attr('fill', textColour).attr('font-size', (fontSize - 1.5) + 'px')
+        .attr('font-family', 'Calibri, sans-serif').attr('opacity', 0.85);
+    }
+    if (h > 52) {
+      g.append('text').attr('x', 4).attr('y', fontSize * 3 + 4)
+        .text(d.data.c.toLocaleString() + ' cos')
+        .attr('fill', textColour).attr('font-size', (fontSize - 2) + 'px')
+        .attr('font-family', 'Calibri, sans-serif').attr('opacity', 0.7);
+    }
+  });
+})();
+</script>
 </body>
 </html>
