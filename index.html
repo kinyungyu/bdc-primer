@@ -91,7 +91,6 @@ td:not(:first-child) { text-align: right; }
   <div class="subtitle">Structure, Exposures &amp; XBRL Data Coverage</div>
   <hr>
   <div class="source">Based on SEC EDGAR XBRL BDC Data Sets (Q1 2025)</div>
-  <div class="source">and OTF (Blue Owl Technology Finance Corp.) 10-K deep dive</div>
   <div class="date">July 2026</div>
 </div>
 
@@ -128,15 +127,6 @@ td:not(:first-child) { text-align: right; }
 <div class="page">
   <h2>The BDC Universe</h2>
 
-  <div class="stat-row">
-    <div class="stat-box"><div class="value">165</div><div class="label">Registered BDCs</div></div>
-    <div class="stat-box"><div class="value">153</div><div class="label">With SOI Data</div></div>
-    <div class="stat-box"><div class="value">114,738</div><div class="label">Total Holdings</div></div>
-    <div class="stat-box"><div class="value">144 10-K</div><div class="label">Filing Types</div></div>
-  </div>
-
-  <p>The SEC publishes structured XBRL data for all registered BDCs through its BDC Data Sets, available as quarterly and monthly zip files. The Q1 2025 data set contains 166 filings from 165 unique entities, predominantly annual 10-K filings (144) with 20 quarterly 10-Q filings. Of these, 153 BDCs report Schedule of Investments (SOI) holdings data in structured format, totalling 114,738 individual holding rows.</p>
-
   <h3>Top 7 BDCs by AUM: Advisory Agreement Pairs</h3>
   <table>
     <tr><th>Parent Manager</th><th>Ticker</th><th>BDC Name</th><th>FV ($B)</th><th>Holdings</th><th>Companies</th></tr>
@@ -148,8 +138,6 @@ td:not(:first-child) { text-align: right; }
     <tr><td>Golub Capital</td><td>GBDC</td><td>Golub Capital BDC</td><td>8.1</td><td>1,639</td><td>397</td></tr>
     <tr><td>Sixth Street</td><td>TSLX</td><td>Sixth Street Specialty Lending</td><td>3.5</td><td>221</td><td>176</td></tr>
   </table>
-  <div class="footnote">FV from latest public filings. Holdings/companies from XBRL SOI data (Q1 2025 data set, FY2024 period).</div>
-
   <h3>Detailed information only available within 10-K</h3>
   <p>Data on the underlying portfolio companies is available in XBRL files; however, these files capture only approximately 60&ndash;70% of the holding-level information contained in a 10-K filing. This missing information is particularly important for credit quality assessment and concentration risk analysis.</p>
   <p>The XBRL data provides the quantitative foundation of the portfolio, what assets are held, their cost basis, and their fair value. However, the qualitative context, including why investments were made, how they are managed, and the associated risks, is available only in the accompanying 10-K.</p>
@@ -182,7 +170,6 @@ td:not(:first-child) { text-align: right; }
     <tr><td>Maturity date</td><td style="text-align:left">SOI table column (MM/YYYY format)</td><td style="text-align:left">XBRL field exists but populated on only 20% of rows</td></tr>
     <tr><td>Controlled companies (&gt;25% voting)</td><td style="text-align:left">SOI footnotes (e.g. fn 30)</td><td style="text-align:left">Not tagged in XBRL at holding level</td></tr>
   </table>
-  <div class="footnote">Population rates are across all 114,738 SOI rows in the Q1 2025 data set. The soi.tsv file contains 190+ columns but most are sparsely populated.</div>
 </div>
 
 
